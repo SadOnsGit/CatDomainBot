@@ -1,6 +1,5 @@
 # **CatDomainBot**
 [![Python](https://a11ybadges.com/badge?logo=python)](https://www.python.org/)
-[![Telegram](https://a11ybadges.com/badge?logo=telegram)]()
 [![Aiogram](https://a11ybadges.com/badge?text=Aiogram3.0&badgeColor=blue)]()
 
 ## Описание
