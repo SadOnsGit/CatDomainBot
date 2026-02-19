@@ -4,7 +4,6 @@ from bot_create import dp, bot
 from routers.user_private import router_start
 from callbacks.cb_find_domain import cb_domain_action
 
-# Подключение роутеров
 dp.include_routers(
     router_start,
     cb_domain_action

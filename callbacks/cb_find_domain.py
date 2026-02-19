@@ -66,7 +66,11 @@ async def get_domain(msg: Message, state: FSMContext):
 
     res = await search_domain(msg.text)
     search_results = res['SearchResponse']['SearchResults']
-    
+    if 'Error' in search_results[0]:
+        error = search_results[0].get('Error')
+        if 'unsupported domain type' in error:
+            await msg.reply('❌ Неподдерживаемый домен. Выберите другой')
+            return
     if search_results and search_results[0]['Available'] == 'yes':
         price = search_results[0]['Price'].split()[2]
         final_price = float(price) * PERCENT_BUY
@@ -83,7 +87,6 @@ async def get_domain(msg: Message, state: FSMContext):
             '❌ К сожалению котики сказали что домен недоступен 😿'
             '\nВам нужно выбрать другой домен.'
         )
-        await state.clear()
 
 
 @cb_domain_action.message(BuyDomain.get_years)
