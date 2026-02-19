@@ -2,6 +2,7 @@
 
 [![Python](https://a11ybadges.com/badge?logo=python)](https://www.python.org/)
 [![Aiogram](https://a11ybadges.com/badge?text=Aiogram3.0&badgeColor=blue)]()
+![SQLAlchemy](https://img.shields.io/badge/SQLALCHEMY-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white&logoSize=auto)
 
 ## Описание
 <img width="960" height="960" alt="image" src="https://github.com/user-attachments/assets/e1ff47e5-b4ec-43ce-986b-e8056b0eb122" />
