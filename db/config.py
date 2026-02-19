@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     bot_token: str
     dynadot_api_key: str
     db_url: str
+    admins: list
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).parent.parent / ".env",

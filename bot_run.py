@@ -2,6 +2,7 @@ import asyncio
 
 from bot_create import dp, bot
 from routers.user_private import router_start
+from routers.admin import router_admin_panel
 from callbacks.cb_find_domain import cb_domain_action
 from callbacks.cb_profile import router_profile
 from db import engine, base
@@ -9,7 +10,8 @@ from db import engine, base
 dp.include_routers(
     router_start,
     cb_domain_action,
-    router_profile
+    router_profile,
+    router_admin_panel
 )
 
 
