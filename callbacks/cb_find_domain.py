@@ -96,7 +96,7 @@ async def get_domain(msg: Message, state: FSMContext):
         final_price = float(price) * PERCENT_BUY
         await msg.reply(
             '<b>😼 Котики сказали, что домен свободен и вы можете его приобрести!'
-            f'\n💰 Цена домена: {final_price}$'
+            f'\n💰 Цена домена: {final_price:.2f}$'
             '\nНа сколько лет возьмёте домен? (от 1 до 10)</b>',
             parse_mode='html',
         )

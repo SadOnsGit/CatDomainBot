@@ -6,6 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 from db.commands import get_user_or_create
 from db.engine import async_session
+from keyboard.mkp_profile_actions import mkp_profile
 
 router_profile = Router()
 
@@ -27,5 +28,6 @@ async def profile(call: CallbackQuery, state: FSMContext, db_session: async_sess
             "<b>Мой профиль:</b>\n"
             f"🆔 ID: <code>{user.id}</code>\n"
             f"💰 Баланс: <b>{str(balance)}</b> $\n",
-            parse_mode='HTML'
+            parse_mode='HTML',
+            reply_markup=mkp_profile
         )
