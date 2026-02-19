@@ -1,4 +1,5 @@
 # **CatDomainBot**
+
 <img width="960" height="960" alt="image" src="https://github.com/user-attachments/assets/e1ff47e5-b4ec-43ce-986b-e8056b0eb122" />
 
 [![Python](https://a11ybadges.com/badge?logo=python)](https://www.python.org/)
