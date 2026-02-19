@@ -8,6 +8,8 @@ from aiogram.fsm.state import State, StatesGroup
 from keyboard.mkp_cancel import mkp_cancel
 from keyboard.mkp_buy_domain import mkp_buy_domain
 from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL, PERCENT_BUY
+from db.engine import async_session
+from db.commands import buy_domain
 
 class FindDomain(StatesGroup):
     get_domain = State()
@@ -21,7 +23,7 @@ class BuyDomain(StatesGroup):
 cb_domain_action = Router()
 
 @cb_domain_action.callback_query(F.data.startswith('domain.'))
-async def domain_actions(call: CallbackQuery, state: FSMContext):
+async def domain_actions(call: CallbackQuery, state: FSMContext, db_session: async_session):
     action = call.data.split('.')[1]
     if action == 'search':
         await call.message.edit_text(
@@ -40,21 +42,39 @@ async def domain_actions(call: CallbackQuery, state: FSMContext):
         domain = data.get("domain")
         years = data.get("years")
         ns = data.get('ns')
-        res = await register_domain(ns, domain, years)
-        print(res)
-        reg = res.get("RegisterResponse", {})
-        success = reg.get("ResponseCode") == "0" or "success" in str(reg.get("Status", "")).lower()
-        if success:
+        price = data.get("price", 0.0)
+        payment_method = 'balance'
+        user_id = call.from_user.id
+        status, desc = await buy_domain(
+            db_session,
+            user_id,
+            price,
+            domain,
+            payment_method,
+            years
+        )
+        print(status, desc)
+        if desc == 'insufficient_funds':
             await call.message.edit_text(
-                f'<b>😼 Котики успешно купили для вас домен:'
-                '\n\nИнформация о домене:'
-                '\n----------'
-                f'\n1. Домен - {domain}'
-                f'\n2. NS-Сервера - {' '.join(ns)}'
-                f'\n3. Срок действия домена: {years} год/лет</b>',
+                f'<b>🙀 Недостаточно средств. Пополните баланс</b>',
                 parse_mode='html',
             )
             await state.clear()
+        if status:
+            res = await register_domain(ns, domain, years)
+            reg = res.get("RegisterResponse", {})
+            success = reg.get("ResponseCode") == "0" or "success" in str(reg.get("Status", "")).lower()
+            if success:
+                await call.message.edit_text(
+                    f'<b>😼 Котики успешно купили для вас домен:'
+                    '\n\nИнформация о домене:'
+                    '\n----------'
+                    f'\n1. Домен - {domain}'
+                    f'\n2. NS-Сервера - {' '.join(ns)}'
+                    f'\n3. Срок действия домена: {years} год/лет</b>',
+                    parse_mode='html',
+                )
+                await state.clear()
 
 
 
