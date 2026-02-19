@@ -20,7 +20,6 @@ async def get_user_or_create(
     Args:
         session: активная асинхронная сессия
         user_id: telegram ID пользователя
-        create_if_not_exists: создать пользователя, если его нет
         username, full_name: данные для создания
     
     Returns:
@@ -52,9 +51,9 @@ async def buy_domain(
     user_id: int,
     price: float | Decimal | str | int,
     domain_name: str,
+    years: int,
     payment_method: str = "balance",
     description: Optional[str] = None,
-    years: int,
 ) -> Tuple[bool, str]:
     """
     Списывает деньги с баланса и создаёт запись о покупке домена.

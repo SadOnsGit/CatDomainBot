@@ -50,8 +50,8 @@ async def domain_actions(call: CallbackQuery, state: FSMContext, db_session: asy
             user_id,
             price,
             domain,
+            years,
             payment_method,
-            years
         )
         print(status, desc)
         if desc == 'insufficient_funds':
