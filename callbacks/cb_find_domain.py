@@ -7,9 +7,10 @@ from aiogram.fsm.state import State, StatesGroup
 
 from keyboard.mkp_cancel import mkp_cancel
 from keyboard.mkp_buy_domain import mkp_buy_domain
-from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL, PERCENT_BUY
+from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL
 from db.engine import async_session
 from db.commands import buy_domain
+from db.config import runtime
 
 class FindDomain(StatesGroup):
     get_domain = State()
@@ -93,7 +94,7 @@ async def get_domain(msg: Message, state: FSMContext):
             return
     if search_results and search_results[0]['Available'] == 'yes':
         price = search_results[0]['Price'].split()[2]
-        final_price = float(price) * PERCENT_BUY
+        final_price = float(price) * runtime.percent_buy
         await msg.reply(
             '<b>😼 Котики сказали, что домен свободен и вы можете его приобрести!'
             f'\n💰 Цена домена: {final_price:.2f}$'

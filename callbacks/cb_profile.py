@@ -13,7 +13,6 @@ router_profile = Router()
 
 @router_profile.callback_query(F.data.startswith('user.'))
 async def profile(call: CallbackQuery, state: FSMContext, db_session: async_session):
-
     action = call.data.split('.')[1]
     if action == 'profile':
         user = await get_user_or_create(

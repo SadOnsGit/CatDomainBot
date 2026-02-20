@@ -5,13 +5,15 @@ from routers.user_private import router_start
 from routers.admin import router_admin_panel
 from callbacks.cb_find_domain import cb_domain_action
 from callbacks.cb_profile import router_profile
+from callbacks.cb_admin_actions import router_admin
 from db import engine, base
 
 dp.include_routers(
     router_start,
     cb_domain_action,
     router_profile,
-    router_admin_panel
+    router_admin_panel,
+    router_admin,
 )
 
 

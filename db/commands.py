@@ -90,3 +90,22 @@ async def buy_domain(
 
     except Exception as e:
         return False, f"error: {str(e)}"
+
+
+async def topup_balance(
+        session: AsyncSession,
+        user_id: int,
+        amount: float
+    ):
+    try:
+        async with session.begin():
+            stmt = select(User).where(User.id == user_id).with_for_update()
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+            price_dec = Decimal(str(amount))
+
+            user.balance += price_dec
+            return True, "success"
+
+    except Exception as e:
+        return False, f"error: {str(e)}"

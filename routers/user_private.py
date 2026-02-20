@@ -1,6 +1,6 @@
-from aiogram import Router
+from aiogram import Router, types
 from aiogram.filters import Command
-from aiogram import types
+from aiogram.fsm.context import FSMContext
 
 from keyboard.mkp_main import mkp_main
 from db.commands import get_user_or_create
@@ -10,7 +10,7 @@ router_start = Router()
 
 
 @router_start.message(Command('start'))
-async def start_message(msg: types.Message, db_session: async_session):
+async def start_message(msg: types.Message, state: FSMContext, db_session: async_session):
     await get_user_or_create(
         session=db_session,
         user_id=msg.from_user.id,
@@ -21,3 +21,4 @@ async def start_message(msg: types.Message, db_session: async_session):
                      '\nКотики помогут вам найти идеальный домен по низкой цене! 🐱✨'
                      '\nВведите желаемое доменное имя, и наши пушистые помощники тщательно проберутся через интернет, чтобы найти все доступные варианты!</b>',
                      parse_mode='html', reply_markup=mkp_main)
+    await state.clear()
