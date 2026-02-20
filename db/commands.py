@@ -139,3 +139,25 @@ async def get_all_users(session: AsyncSession) -> list[User]:
     result = await session.execute(stmt)
     users = result.scalars().all()
     return users
+
+
+async def get_all_domains_user(session: AsyncSession, user_id: int) -> List[Domain]:
+    """
+    Возвращает список всех доменов пользователя.
+    """
+    stmt = (
+        select(Domain)
+        .where(Domain.owner_id == user_id)
+        .order_by(Domain.created_at.desc())
+    )
+
+    result = await session.execute(stmt)
+    domains = result.scalars().all()
+
+    return domains
+
+
+async def get_domain_by_id(domain_id: int, session: AsyncSession):
+    stmt = select(Domain).where(Domain.id == domain_id)
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()

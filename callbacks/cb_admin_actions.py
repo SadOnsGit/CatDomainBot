@@ -176,7 +176,7 @@ async def get_amount(msg: Message, state: FSMContext, db_session: async_session)
         )
         await state.clear()
     await msg.answer(
-        f'<b>✅ Успешное создание промокода - </b> <code> {promo}</code>'
+        f'<b>✅ Успешное создание промокода - </b><code>{promo}</code>'
         f'\n<b>Количество использований: {max_uses}'
         f'\nСумма промокода: {amount}$</b>',
         parse_mode='html'

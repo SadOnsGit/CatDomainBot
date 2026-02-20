@@ -4,9 +4,9 @@ from aiogram import Router, F
 from aiogram.fsm.state import State, StatesGroup
 
 
-from db.commands import get_user_or_create
+from db.commands import get_user_or_create, get_all_domains_user
 from db.engine import async_session
-from keyboard.mkp_profile_actions import mkp_profile
+from keyboard.mkp_profile_actions import mkp_profile, mkp_user_domains
 
 router_profile = Router()
 
@@ -29,4 +29,15 @@ async def profile(call: CallbackQuery, state: FSMContext, db_session: async_sess
             f"💰 Баланс: <b>{str(balance)}</b> $\n",
             parse_mode='HTML',
             reply_markup=mkp_profile
+        )
+    elif action == 'domains':
+        domains = await get_all_domains_user(
+            db_session,
+            call.from_user.id
+        )
+        keyboard = await mkp_user_domains(domains)
+        await call.message.edit_text(
+            "<b>Мои домены:</b>\n",
+            parse_mode='HTML',
+            reply_markup=keyboard
         )

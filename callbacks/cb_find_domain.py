@@ -7,9 +7,10 @@ from aiogram.fsm.state import State, StatesGroup
 
 from keyboard.mkp_cancel import mkp_cancel
 from keyboard.mkp_buy_domain import mkp_buy_domain
+from keyboard.mkp_profile_actions import mkp_domain_actions
 from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL
 from db.engine import async_session
-from db.commands import buy_domain
+from db.commands import buy_domain, get_domain_by_id
 from db.config import runtime
 
 class FindDomain(StatesGroup):
@@ -19,6 +20,10 @@ class FindDomain(StatesGroup):
 class BuyDomain(StatesGroup):
     get_years = State()
     get_ns = State()
+
+
+class ChangeNS(StatesGroup):
+    waiting_ns = State()
 
 
 cb_domain_action = Router()
@@ -187,3 +192,176 @@ async def register_domain(ns, domain, years):
         return r.json()
     except Exception as e:
         return {"error": str(e)}
+
+
+async def get_domain_nameservers(domain_name: str) -> Optional[List[str]]:
+    """
+    Запрашивает текущие NS-сервера домена через API.
+    Возвращает список NS или None в случае ошибки/не найден.
+    """
+    params = {
+        "key": DYNADOT_API_KEY,
+        "command": "get_dns",
+        "domain": domain_name,
+    }
+
+    try:
+        r = requests.get(DYNADOT_API_URL, params=params, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+
+        status = data.get("GetDnsResponse", {}).get("Status")
+        if status != "success":
+            print(f"Ошибка API: {data.get('GetDnsResponse', {}).get('Message')}")
+            return None
+
+        settings = (
+            data.get("GetDnsResponse", {})
+               .get("GetDns", {})
+               .get("NameServerSettings", {})
+        )
+        ns_list = settings.get("NameServers")
+        return [ns['ServerName'] for ns in ns_list]
+
+    except Exception as e:
+        print(f"Ошибка при запросе NS для {domain_name}: {e}")
+        return None
+
+
+async def change_domain_nameservers(
+    domain_name: str,
+    new_ns: List[str],
+    timeout: int = 15
+) -> Tuple[bool, str]:
+    """
+    Изменяет NS-сервера домена через API.
+    """
+    if not new_ns:
+        return False, "Список NS пустой"
+
+    if len(new_ns) > 13:
+        return False, "Максимум 13 NS-серверов"
+
+    params = {
+        "key": DYNADOT_API_KEY,
+        "command": "set_ns",
+        "domain": domain_name,
+    }
+
+    for i, ns in enumerate(new_ns):
+        params[f"ns{i}"] = ns.strip()
+
+    try:
+        r = requests.get(DYNADOT_API_URL, params=params, timeout=timeout)
+        r.raise_for_status()
+        
+        data = r.json()
+        
+        status = data.get("SetNsResponse", {}).get("Status", "error")
+        message = data.get("SetNsResponse", {}).get("Message", "Нет сообщения")
+
+        if status == "success":
+            return True, "NS успешно изменены"
+        else:
+            return False, f"Ошибка API: {message}"
+
+    except requests.exceptions.RequestException as e:
+        return False, f"Ошибка соединения: {str(e)}"
+    except ValueError:
+        return False, "Некорректный ответ от API"
+    except Exception as e:
+        return False, f"Неизвестная ошибка: {str(e)}"
+
+
+@cb_domain_action.callback_query(F.data.startswith("domain:info:"))
+async def show_domain_detail(call: CallbackQuery, db_session: AsyncSession):
+    """
+    Показывает подробную информацию о домене + кнопки управления
+    """
+    domain_id = int(call.data.split(":")[-1])
+    domain = await get_domain_by_id(domain_id, db_session)
+
+    bought_str = domain.created_at.strftime("%Y-%m-%d") if domain.created_at else "—"
+    expires_str = domain.expires_at.strftime("%Y-%m-%d") if domain.expires_at else "—"
+
+    current_ns = await get_domain_nameservers(domain.domain_name)
+    ns_text = "не указаны (используются по умолчанию)"
+    if current_ns:
+        ns_text = "\n".join(f"  ┗ {ns}" for ns in current_ns)
+
+    text = (
+        f"🌐 <b>{domain.domain_name}</b>\n\n"
+        f"┠ Куплен: {bought_str}\n"
+        f"┠ Истекает: {expires_str}\n\n"
+        f"<b>💻 NS-сервера:</b>\n"
+        f"{ns_text}"
+    )
+    keyboard = await mkp_domain_actions(domain.id)
+    try:
+        await call.message.edit_text(
+            text,
+            parse_mode="HTML",
+            reply_markup=keyboard
+        )
+    except Exception as e:
+        await call.message.answer(text, parse_mode="HTML", reply_markup=keyboard)
+
+    await call.answer()
+
+
+@cb_domain_action.callback_query(F.data.startswith("domain:change_ns:"))
+async def start_change_ns(call: CallbackQuery, state: FSMContext):
+    try:
+        domain_id = int(call.data.split(":")[-1])
+    except:
+        await call.answer("Ошибка", show_alert=True)
+        return
+
+    await state.update_data(domain_id=domain_id)
+
+    await call.message.edit_text(
+        "Введите новые NS-сервера:\n\n"
+        "• По одному на строку\n"
+        "• Или через пробел/запятую\n\n"
+        "Примеры:\n"
+        "ns0.cloudflare.com peaches.ns1.cloudflare.com\n\n"
+        "Напишите «пропустить» или «отмена», чтобы не менять.",
+        parse_mode="HTML"
+    )
+
+    await state.set_state(ChangeNS.waiting_ns)
+    await call.answer()
+
+
+@cb_domain_action.message(ChangeNS.waiting_ns)
+async def process_new_ns(msg: Message, state: FSMContext, db_session: AsyncSession):
+    text = msg.text.strip()
+
+    ns_raw = text.replace(",", " ").replace("\n", " ").split()
+    new_ns = [ns.strip() for ns in ns_raw if ns.strip() and "." in ns]
+
+    if not new_ns:
+        await msg.answer("Не удалось распознать NS-сервера. Попробуйте снова.")
+        return
+
+    data = await state.get_data()
+    domain_id = data.get("domain_id")
+
+    domain = await get_domain_by_id(domain_id, db_session)
+    if not domain:
+        await msg.answer("Домен не найден.")
+        await state.clear()
+        return
+
+    success, message = await change_domain_nameservers(domain.domain_name, new_ns)
+
+    if success:
+        await msg.answer(
+            f"✅ NS-сервера успешно изменены!\n\n"
+            f"Новые NS:\n" + "\n".join(f"• {ns}" for ns in new_ns) + 
+            f"\n\nИзменение может занять до 24–48 часов."
+        )
+    else:
+        await msg.answer(f"❌ Не удалось изменить NS:\n{message}")
+
+    await state.clear()
