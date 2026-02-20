@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .models import User, Purchase, Domain
+from .models import User, Purchase, Domain, PromoCode
 
 
 async def get_user_or_create(
@@ -109,3 +109,33 @@ async def topup_balance(
 
     except Exception as e:
         return False, f"error: {str(e)}"
+
+
+async def create_promocode(
+        session: AsyncSession,
+        promocode: str,
+        max_uses: int,
+        amount: float
+    ):
+    try:
+        async with session.begin():
+            promocode = PromoCode(
+                code=promocode,
+                max_uses=max_uses,
+                bonus_amount=amount
+            )
+            session.add(promocode)
+            return True, "success"
+
+    except Exception as e:
+        return False, f"error: {str(e)}"
+
+
+async def get_all_users(session: AsyncSession) -> list[User]:
+    """
+    Возвращает список всех пользователей
+    """
+    stmt = select(User).order_by(User.id)
+    result = await session.execute(stmt)
+    users = result.scalars().all()
+    return users
