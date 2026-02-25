@@ -3,7 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 mkp_profile = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text='💰 Пополнить баланс',
-                             callback_data='profile.top_up')
+                             callback_data='user.top_up')
     ],
     [
         InlineKeyboardButton(text='🎟️ Реферальная программа',

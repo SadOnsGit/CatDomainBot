@@ -1,6 +1,12 @@
 import requests
 
-from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL
+from decimal import Decimal
+from typing import Optional
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
+from aiocryptopay import AioCryptoPay, Networks
+
+from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL, cryptopay_token
 
 
 async def search_domain(domain) -> dict:
@@ -115,3 +121,73 @@ async def change_domain_nameservers(
         return False, "Некорректный ответ от API"
     except Exception as e:
         return False, f"Неизвестная ошибка: {str(e)}"
+
+
+async def create_and_send_invoice(
+    message: Message,
+    amount: Decimal,
+    user_id: int,
+    state: Optional[FSMContext] = None
+) -> bool:
+    """
+    Создаёт инвойс через переданный crypto и отправляет пользователю кнопку оплаты.
+    Возвращает True при успехе.
+    """
+    crypto = AioCryptoPay(
+        token=cryptopay_token,
+        network=Networks.TEST_NET
+    )
+    try:
+        invoice = await crypto.create_invoice(
+            asset='USDT',
+            amount=amount,
+            description=f"Пополнение от пользователя {user_id}",
+            payload=f"uid_{user_id}",
+        )
+    except Exception as e:
+        await message.answer(f"Ошибка создания инвойса:\n<code>{str(e)}</code>")
+        if state:
+            await state.clear()
+        return False
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=f"💸 Оплатить {invoice.amount} {invoice.asset}",
+                url=invoice.bot_invoice_url
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=f"✅ Проверить оплату",
+                callback_data=f'user.check_payment.{invoice.invoice_id}.{invoice.amount}'
+            )
+        ],
+    ])
+
+    await message.answer(
+        f"Счёт успешно создан!\n\n"
+        f"Сумма: <b>{invoice.amount} {invoice.asset}</b>\n"
+        f"ID инвойса: <code>{invoice.invoice_id}</code>\n\n"
+        "Оплатите по кнопке ниже 👇",
+        parse_mode='html',
+        reply_markup=kb
+    )
+
+    if state:
+        await state.clear()
+
+    return True
+
+
+async def check_payment(payment_id):
+    crypto = AioCryptoPay(
+        token=cryptopay_token,
+        network=Networks.TEST_NET
+    )
+    invoices = await crypto.get_invoices(status="paid")
+    for inv in invoices:
+        invoice_id = int(inv.invoice_id)
+        if invoice_id == int(payment_id):
+            return True
+    return False

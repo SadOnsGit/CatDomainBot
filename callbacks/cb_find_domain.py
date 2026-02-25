@@ -9,7 +9,7 @@ from keyboard.mkp_profile_actions import mkp_domain_actions
 from db.engine import async_session
 from db.commands import buy_domain, get_domain_by_id
 from db.config import runtime
-from api_commands import (
+from .api_commands import (
     register_domain,
     search_domain,
     get_domain_nameservers,

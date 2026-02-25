@@ -6,6 +6,7 @@ from typing import List
 class Settings(BaseSettings):
     bot_token: str
     dynadot_api_key: str
+    crypto_pay_token: str
     db_url: str
     admins: List[int]
     percent_buy_default: float = 1.4
