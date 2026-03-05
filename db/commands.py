@@ -2,10 +2,11 @@ from typing import Optional
 from decimal import Decimal
 from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, exists, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
-from .models import User, Purchase, Domain, PromoCode
+from .models import User, Purchase, Domain, PromoCode, PromoCodeUsage
 
 
 async def get_user_or_create(
@@ -98,14 +99,13 @@ async def topup_balance(
         amount: float
     ):
     try:
-        async with session.begin():
-            stmt = select(User).where(User.id == user_id).with_for_update()
-            result = await session.execute(stmt)
-            user = result.scalar_one_or_none()
-            price_dec = Decimal(str(amount))
+        stmt = select(User).where(User.id == user_id).with_for_update()
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
+        price_dec = Decimal(str(amount))
 
-            user.balance += price_dec
-            return True, "success"
+        user.balance += price_dec
+        return True, "success"
 
     except Exception as e:
         return False, f"error: {str(e)}"
@@ -161,3 +161,37 @@ async def get_domain_by_id(domain_id: int, session: AsyncSession):
     stmt = select(Domain).where(Domain.id == domain_id)
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
+
+
+async def get_promo_or_none(promocode, session: AsyncSession):
+    stmt = select(PromoCode).where(
+        PromoCode.code == promocode
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def create_promo_use(promocode, user_id: int, session: AsyncSession):
+    if await session.scalar(
+        select(exists().where(
+            PromoCodeUsage.promo_code_id == promocode.id,
+            PromoCodeUsage.user_id == user_id
+        ))
+    ):
+        return False, "promocode_used"
+
+    if promocode.max_uses is not None and promocode.uses_count >= promocode.max_uses:
+        return False, "promo_uses_limit_reached"
+
+    session.add(PromoCodeUsage(promo_code_id=promocode.id, user_id=user_id))
+
+    await session.execute(
+        update(PromoCode)
+        .where(PromoCode.id == promocode.id)
+        .values(
+            uses_count=PromoCode.uses_count + 1,
+            active=PromoCode.max_uses.is_(None) | (PromoCode.uses_count + 1 < PromoCode.max_uses)
+        )
+    )
+
+    return True, "success"

@@ -6,6 +6,11 @@ from aiogram.types import TelegramObject
 from db.engine import async_session
 
 
+from typing import Callable, Dict, Any, Awaitable
+from aiogram import BaseMiddleware
+from aiogram.types import TelegramObject
+
+
 class DBSessionMiddleware(BaseMiddleware):
     async def __call__(
         self,
@@ -15,4 +20,13 @@ class DBSessionMiddleware(BaseMiddleware):
     ) -> Any:
         async with async_session() as session:
             data["db_session"] = session
-            return await handler(event, data)
+
+            try:
+                result = await handler(event, data)
+                await session.commit()
+
+                return result
+
+            except Exception as e:
+                await session.rollback()
+                raise

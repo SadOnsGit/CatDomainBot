@@ -12,6 +12,7 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    UniqueConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -92,3 +93,32 @@ class PromoCode(Base):
     valid_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class PromoCodeUsage(Base):
+    __tablename__ = "promo_code_usages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    
+    promo_code_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("promo_codes.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+    
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+    
+    used_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False
+    )
+    __table_args__ = (
+        UniqueConstraint("promo_code_id", "user_id", name="uq_promo_user"),
+    )
