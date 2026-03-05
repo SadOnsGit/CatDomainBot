@@ -1,0 +1,11 @@
+[tool.black]
+line-length = 79
+extend-exclude = '''
+/(\.venv|venv|env|\.git|__pycache__|build|dist)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 79
+known_local_folder = ['keyboard', 'db', 'callbacks', 'middleware', 'routers']
+skip_glob = ["**/.venv/**", "**/venv/**", "**/env/**", "**/__pycache__/**"]

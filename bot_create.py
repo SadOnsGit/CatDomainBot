@@ -1,8 +1,8 @@
+from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram import Dispatcher, Bot
 
-from middleware.db import DBSessionMiddleware
 from db.config import settings
+from middleware.db import DBSessionMiddleware
 
 token = settings.bot_token
 DYNADOT_API_KEY = settings.dynadot_api_key

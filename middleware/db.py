@@ -1,14 +1,9 @@
-from typing import Callable, Dict, Any, Awaitable
+from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 
 from db.engine import async_session
-
-
-from typing import Callable, Dict, Any, Awaitable
-from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject
 
 
 class DBSessionMiddleware(BaseMiddleware):

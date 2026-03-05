@@ -1,7 +1,9 @@
 # config.py (или отдельный runtime_settings.py)
 from pathlib import Path
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     bot_token: str
@@ -19,6 +21,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
 
 class RuntimeConfig:
     percent_buy: float = settings.percent_buy_default
