@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     bot_token: str
     dynadot_api_key: str
+    test_crypto_pay_token: str
     crypto_pay_token: str
     db_url: str
     admins: list[int]

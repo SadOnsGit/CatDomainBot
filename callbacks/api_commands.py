@@ -6,7 +6,7 @@ from aiocryptopay import AioCryptoPay, Networks
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL, cryptopay_token
+from bot_create import DYNADOT_API_KEY, DYNADOT_API_URL, test_cryptopay_token, cryptopay_token
 
 
 async def search_domain(domain) -> dict:
@@ -133,7 +133,7 @@ async def create_and_send_invoice(
     Создаёт инвойс через переданный crypto и отправляет пользователю кнопку оплаты.
     Возвращает True при успехе.
     """
-    crypto = AioCryptoPay(token=cryptopay_token, network=Networks.TEST_NET)
+    crypto = AioCryptoPay(token=cryptopay_token, network=Networks.MAIN_NET)
     try:
         invoice = await crypto.create_invoice(
             asset="USDT",
