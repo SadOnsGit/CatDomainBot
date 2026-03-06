@@ -182,7 +182,7 @@ async def create_and_send_invoice(
 
 
 async def check_payment(payment_id):
-    crypto = AioCryptoPay(token=cryptopay_token, network=Networks.TEST_NET)
+    crypto = AioCryptoPay(token=cryptopay_token, network=Networks.MAIN_NET)
     invoices = await crypto.get_invoices(status="paid")
     for inv in invoices:
         invoice_id = int(inv.invoice_id)
