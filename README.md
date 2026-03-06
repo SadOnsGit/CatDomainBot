@@ -25,4 +25,12 @@
 
 
 ## Скриншоты:
+
+# Главное меню и покупка домена
 <img width="1401" height="1012" alt="image" src="https://github.com/user-attachments/assets/484e2da7-8ff3-406e-9490-415ded5d74ab" />
+
+# Админ панель
+<img width="696" height="245" alt="image" src="https://github.com/user-attachments/assets/ea065c4a-6ef5-4cdf-b3b2-bdb12cd5ba70" />
+
+# Управление доменом
+<img width="588" height="375" alt="image" src="https://github.com/user-attachments/assets/3a6ebaa7-8313-4adf-a125-3b8b3dd9e0ee" />
