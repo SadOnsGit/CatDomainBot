@@ -15,6 +15,7 @@ from db.commands import (
 )
 from db.engine import async_session
 from keyboard.mkp_profile_actions import mkp_profile, mkp_user_domains
+from keyboard.mkp_cancel import mkp_cancel, mkp_menu
 
 router_profile = Router()
 
@@ -58,6 +59,7 @@ async def profile(
         await call.message.edit_text(
             "<b>Введите сумму пополнения (в $):</b>\n",
             parse_mode="HTML",
+            reply_markup=mkp_cancel
         )
         await state.set_state(TopUpBalance.get_amount)
     elif action == "check_payment":
@@ -71,12 +73,14 @@ async def profile(
                 await call.message.edit_text(
                     "<b>✅ Успешное пополнение баланса!</b>\n",
                     parse_mode="HTML",
+                    reply_markup=mkp_menu
                 )
         await call.answer("❌ Не оплачено")
     elif action == "promocode":
         await call.message.edit_text(
             "<b>Введите промокод:</b>\n",
             parse_mode="HTML",
+            reply_markup=mkp_cancel
         )
         await state.set_state(GetPromocode.get_promocode)
 
@@ -115,5 +119,6 @@ async def get_promocode(
             "<b>✅ Успешное использование промокода."
             f"\nНа ваш баланс зачислено {amount}$</b>",
             parse_mode="HTML",
+            reply_markup=mkp_menu
         )
     await state.clear()

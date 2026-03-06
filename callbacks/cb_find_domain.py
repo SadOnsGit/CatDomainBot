@@ -13,7 +13,7 @@ from db.commands import buy_domain, get_domain_by_id
 from db.config import runtime
 from db.engine import async_session
 from keyboard.mkp_buy_domain import mkp_buy_domain
-from keyboard.mkp_cancel import mkp_cancel
+from keyboard.mkp_cancel import mkp_cancel, mkp_menu
 from keyboard.mkp_profile_actions import mkp_domain_actions
 
 
@@ -66,11 +66,11 @@ async def domain_actions(
             years,
             payment_method,
         )
-        print(status, desc)
         if desc == "insufficient_funds":
             await call.message.edit_text(
                 f"<b>🙀 Недостаточно средств. Пополните баланс</b>",
                 parse_mode="html",
+                reply_markup=mkp_menu
             )
             await state.clear()
         if status:
@@ -89,6 +89,7 @@ async def domain_actions(
                     f"\n2. NS-Сервера - {' '.join(ns)}"
                     f"\n3. Срок действия домена: {years} год/лет</b>",
                     parse_mode="html",
+                    reply_markup=mkp_menu
                 )
                 await state.clear()
 
@@ -114,6 +115,7 @@ async def get_domain(msg: Message, state: FSMContext):
             f"\n💰 Цена домена: {final_price:.2f}$"
             "\nНа сколько лет возьмёте домен? (от 1 до 10)</b>",
             parse_mode="html",
+            reply_markup=mkp_cancel
         )
         await state.update_data(domain=msg.text, price=final_price)
         await state.set_state(BuyDomain.get_years)
@@ -139,6 +141,7 @@ async def get_years(msg: Message, state: FSMContext):
         "<b>😼 Отлично! Хотите ли вы сразу указать NS сервера?"
         "Напишите их через пробел или укажите «нет» / «пропустить» - чтобы сделать это потом.</b>",
         parse_mode="html",
+        reply_markup=mkp_cancel
     )
     await state.set_state(BuyDomain.get_ns)
 
@@ -171,7 +174,7 @@ async def get_ns(msg: Message, state: FSMContext):
 
 
 @cb_domain_action.callback_query(F.data.startswith("domain:info:"))
-async def show_domain_detail(call: CallbackQuery, db_session: AsyncSession):
+async def show_domain_detail(call: CallbackQuery, db_session: async_session):
     """
     Показывает подробную информацию о домене + кнопки управления
     """
@@ -228,6 +231,7 @@ async def start_change_ns(call: CallbackQuery, state: FSMContext):
         "ns0.cloudflare.com ns1.cloudflare.com\n\n"
         "Напишите «пропустить» или «отмена», чтобы не менять.",
         parse_mode="HTML",
+        reply_markup=mkp_cancel
     )
 
     await state.set_state(ChangeNS.waiting_ns)
@@ -236,7 +240,7 @@ async def start_change_ns(call: CallbackQuery, state: FSMContext):
 
 @cb_domain_action.message(ChangeNS.waiting_ns)
 async def process_new_ns(
-    msg: Message, state: FSMContext, db_session: AsyncSession
+    msg: Message, state: FSMContext, db_session: async_session
 ):
     text = msg.text.strip()
 

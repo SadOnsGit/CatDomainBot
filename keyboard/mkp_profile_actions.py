@@ -15,6 +15,11 @@ mkp_profile = InlineKeyboardMarkup(
                 text="💳 Промокоды", callback_data="user.promocode"
             ),
         ],
+        [
+            InlineKeyboardButton(
+                text="💻 Меню", callback_data="actions.menu"
+            )
+        ],
     ]
 )
 
@@ -32,7 +37,7 @@ async def mkp_user_domains(domains):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="← Назад", callback_data="user.profile"
+                        text="💻 Меню", callback_data="actions.menu"
                     )
                 ]
             ]
@@ -50,7 +55,7 @@ async def mkp_user_domains(domains):
     buttons.append(
         [
             InlineKeyboardButton(
-                text="← Назад в профиль", callback_data="user.profile"
+                text="💻 Меню", callback_data="actions.menu"
             )
         ]
     )

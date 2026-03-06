@@ -44,7 +44,7 @@ async def register_domain(ns, domain, years):
         return {"error": str(e)}
 
 
-async def get_domain_nameservers(domain_name: str) -> Optional[List[str]]:
+async def get_domain_nameservers(domain_name: str) -> Optional[list[str]]:
     """
     Запрашивает текущие NS-сервера домена через API.
     Возвращает список NS или None в случае ошибки/не найден.
@@ -81,8 +81,8 @@ async def get_domain_nameservers(domain_name: str) -> Optional[List[str]]:
 
 
 async def change_domain_nameservers(
-    domain_name: str, new_ns: List[str], timeout: int = 15
-) -> Tuple[bool, str]:
+    domain_name: str, new_ns: list[str], timeout: int = 15
+) -> tuple[bool, str]:
     """
     Изменяет NS-сервера домена через API.
     """

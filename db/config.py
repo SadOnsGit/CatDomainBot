@@ -1,6 +1,5 @@
 # config.py (или отдельный runtime_settings.py)
 from pathlib import Path
-from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -10,7 +9,7 @@ class Settings(BaseSettings):
     dynadot_api_key: str
     crypto_pay_token: str
     db_url: str
-    admins: List[int]
+    admins: list[int]
     percent_buy_default: float = 1.4
 
     model_config = SettingsConfigDict(

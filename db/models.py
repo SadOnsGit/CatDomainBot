@@ -1,6 +1,5 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List
 
 from sqlalchemy import (
     BigInteger,
@@ -36,10 +35,10 @@ class User(Base):
         DateTime, onupdate=func.now()
     )
 
-    domains: Mapped[List["Domain"]] = relationship(
+    domains: Mapped[list["Domain"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )
-    purchases: Mapped[List["Purchase"]] = relationship(
+    purchases: Mapped[list["Purchase"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 

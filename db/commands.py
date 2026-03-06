@@ -55,7 +55,7 @@ async def buy_domain(
     years: int,
     payment_method: str = "balance",
     description: Optional[str] = None,
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     """
     Списывает деньги с баланса и создаёт запись о покупке домена.
     """
@@ -135,7 +135,7 @@ async def get_all_users(session: AsyncSession) -> list[User]:
 
 async def get_all_domains_user(
     session: AsyncSession, user_id: int
-) -> List[Domain]:
+) -> list[Domain]:
     """
     Возвращает список всех доменов пользователя.
     """
